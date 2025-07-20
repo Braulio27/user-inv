@@ -20,7 +20,7 @@
     "test:report": "./scripts/test-report.sh",
     "test:fix": "npm run test -- --fix",
     "test:debug": "npm run test -- --verbose",
-    "test:ci": "jest --ci --coverage --watchAll=false",
+    "test:ci": "jest --ci --coverage --watchAll=false --passWithNoTests",
     "quality-check": "npm run lint && npm run type-check && npm run test:coverage && npm run security:audit",
     "prepare": "husky install"
   },

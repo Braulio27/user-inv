@@ -169,10 +169,6 @@ El proyecto está configurado con TypeScript estricto para mayor seguridad de ti
 
 Este proyecto está bajo la licencia MIT. Ver el archivo `LICENSE` para más detalles.
 
-## 👥 Autores
-
-- **Municipalidad de Carrillo** - Desarrollo inicial
-
 ## 🙏 Agradecimientos
 
 - Material-UI por el sistema de componentes
