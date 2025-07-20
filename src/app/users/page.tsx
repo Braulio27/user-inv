@@ -2,8 +2,8 @@
 
 import LayoutPrivado from '@/layouts/LayoutPrivado'
 import { Typography, TextField, Box, Button, Stack, Snackbar, Alert } from '@mui/material'
-import UserItem from '../components/userItem'
-import UserModal from '../components/UserModal'
+import UserItem from '@/components/userItem'
+import UserModal from '@/components/UserModal'
 import { mockUsers } from '@/data/users'
 import { UserData } from '@/types/user'
 import { useState, useMemo } from 'react'
@@ -157,4 +157,4 @@ export default function UsuariosPage() {
       </Snackbar>
     </LayoutPrivado>
   )
-}
+} 

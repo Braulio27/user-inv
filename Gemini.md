@@ -21,14 +21,15 @@ src/
 │   ├── layout.tsx         # Layout principal con metadatos
 │   ├── page.tsx           # Dashboard principal
 │   ├── login/             # Página de login (básica)
+│   ├── users/             # Página de gestión de usuarios
+│   │   └── page.tsx
 │   └── config/            # Página de configuración (en construcción)
+│       └── page.tsx
 ├── components/            # Componentes reutilizables
 │   ├── userItem.tsx       # Tarjeta de usuario individual
 │   └── UserModal.tsx      # Modal para crear/editar usuarios
 ├── layouts/               # Layouts específicos
 │   └── LayoutPrivado.tsx  # Layout con navegación lateral
-├── users/                 # Página de gestión de usuarios
-│   └── page.tsx
 ├── types/                 # Definiciones de tipos TypeScript
 │   └── user.ts
 └── data/                  # Datos mock y utilidades
