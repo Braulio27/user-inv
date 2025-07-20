@@ -1,8 +1,9 @@
 'use client'
 
 import LayoutPrivado from '@/layouts/LayoutPrivado'
-import { Typography, TextField, Box, Button, Stack } from '@mui/material'
+import { Typography, TextField, Box, Button, Stack, Snackbar, Alert } from '@mui/material'
 import UserItem from '../components/userItem'
+import UserModal from '../components/UserModal'
 import { mockUsers } from '@/data/users'
 import { UserData } from '@/types/user'
 import { useState, useMemo } from 'react'
@@ -11,6 +12,18 @@ import AddIcon from '@mui/icons-material/Add'
 export default function UsuariosPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [users, setUsers] = useState<UserData[]>(mockUsers)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create')
+  const [selectedUser, setSelectedUser] = useState<UserData | null>(null)
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean
+    message: string
+    severity: 'success' | 'error' | 'info' | 'warning'
+  }>({
+    open: false,
+    message: '',
+    severity: 'success'
+  })
 
   const filteredUsers = useMemo(() => {
     if (!searchTerm) return users
@@ -24,19 +37,53 @@ export default function UsuariosPage() {
   }, [users, searchTerm])
 
   const handleEdit = (user: UserData) => {
-    // TODO: Implementar modal de edición
-    alert(`Editar usuario: ${user.nombreCompleto}`)
+    setSelectedUser(user)
+    setModalMode('edit')
+    setModalOpen(true)
   }
 
   const handleDelete = (user: UserData) => {
     if (confirm(`¿Estás seguro de que deseas eliminar a ${user.nombreCompleto}?`)) {
       setUsers(users.filter(u => u.numeroEmpleado !== user.numeroEmpleado))
+      showSnackbar('Usuario eliminado exitosamente', 'success')
     }
   }
 
   const handleAddUser = () => {
-    // TODO: Implementar modal de creación
-    alert('Agregar nuevo usuario')
+    setSelectedUser(null)
+    setModalMode('create')
+    setModalOpen(true)
+  }
+
+  const handleSaveUser = (userData: UserData) => {
+    if (modalMode === 'create') {
+      // Verificar que el número de empleado no exista
+      if (users.some(u => u.numeroEmpleado === userData.numeroEmpleado)) {
+        showSnackbar('El número de empleado ya existe', 'error')
+        return
+      }
+      
+      setUsers([...users, userData])
+      showSnackbar('Usuario creado exitosamente', 'success')
+    } else {
+      // Modo edición
+      setUsers(users.map(u => 
+        u.numeroEmpleado === userData.numeroEmpleado ? userData : u
+      ))
+      showSnackbar('Usuario actualizado exitosamente', 'success')
+    }
+  }
+
+  const showSnackbar = (message: string, severity: 'success' | 'error' | 'info' | 'warning') => {
+    setSnackbar({
+      open: true,
+      message,
+      severity
+    })
+  }
+
+  const handleCloseSnackbar = () => {
+    setSnackbar(prev => ({ ...prev, open: false }))
   }
 
   return (
@@ -83,6 +130,31 @@ export default function UsuariosPage() {
           />
         ))
       )}
+
+      {/* Modal para crear/editar usuarios */}
+      <UserModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSave={handleSaveUser}
+        user={selectedUser}
+        mode={modalMode}
+      />
+
+      {/* Snackbar para notificaciones */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </LayoutPrivado>
   )
 }
