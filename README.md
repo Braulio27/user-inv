@@ -7,6 +7,9 @@ Sistema de gestión de inventario de usuarios y equipos tecnológicos para la Mu
 ### ✅ Implementadas
 - **Dashboard interactivo** con métricas en tiempo real
 - **Gestión de usuarios** con información completa de equipos
+- **CRUD completo** de usuarios (crear, leer, actualizar, eliminar)
+- **Modales interactivos** para crear y editar usuarios
+- **Validación de formularios** con mensajes de error en tiempo real
 - **Búsqueda y filtrado** de usuarios por nombre, departamento, etc.
 - **Interfaz responsive** optimizada para móviles y desktop
 - **Navegación mejorada** con menú lateral y breadcrumbs
@@ -14,16 +17,18 @@ Sistema de gestión de inventario de usuarios y equipos tecnológicos para la Mu
 - **Accesibilidad mejorada** con aria-labels y navegación por teclado
 - **Tipos TypeScript** centralizados y bien definidos
 - **Arquitectura modular** con separación de datos y componentes
+- **Notificaciones** con Snackbar para feedback del usuario
+- **Validación de datos únicos** (número de empleado)
 
 ### 🔄 Funcionalidades Pendientes
 - [ ] Autenticación y autorización
-- [ ] CRUD completo de usuarios (crear, editar, eliminar)
 - [ ] Exportación de datos a CSV/Excel
 - [ ] Paginación para listas grandes
 - [ ] Filtros avanzados por departamento, estado, etc.
 - [ ] Historial de cambios
 - [ ] Notificaciones en tiempo real
 - [ ] Backup automático de datos
+- [ ] Búsqueda avanzada con múltiples criterios
 
 ## 🛠️ Tecnologías
 
@@ -91,6 +96,37 @@ El sistema incluye datos mock de usuarios con información completa:
 - Detalles del equipo asignado
 - Estados de usuario y equipo
 - Información técnica (Service Tag, MAC, etc.)
+
+## 🔧 Funcionalidades CRUD
+
+### Crear Usuario
+- Modal con formulario completo y validación
+- Campos obligatorios marcados con asterisco
+- Validación de formato de dirección MAC
+- Verificación de número de empleado único
+- Valores por defecto para campos comunes
+
+### Editar Usuario
+- Modal pre-poblado con datos existentes
+- Misma validación que crear usuario
+- Actualización en tiempo real de la lista
+- Preservación de datos no modificados
+
+### Eliminar Usuario
+- Confirmación antes de eliminar
+- Eliminación inmediata de la lista
+- Notificación de éxito
+
+### Validaciones Implementadas
+- Número de empleado: requerido y único
+- Nombre completo: requerido
+- Usuario: requerido
+- Edificio: requerido (selección de lista)
+- Departamento: requerido (selección de lista)
+- Puesto: requerido (selección de lista)
+- Service Tag: requerido
+- Modelo: requerido
+- Dirección MAC: requerido y formato válido
 
 ## 🎨 Características de UI/UX
 
