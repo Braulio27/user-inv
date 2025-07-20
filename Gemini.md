@@ -1,46 +1,203 @@
-# Resumen del Proyecto: user-inv
+# Sistema de Inventario de Usuarios - Contexto para Gemini CLI
 
-## Descripción General
+## 🎯 Descripción General
 
-`user-inv` es una aplicación web construida con Next.js y TypeScript, diseñada para la gestión de inventario de usuarios. La interfaz de usuario está desarrollada con Material-UI (MUI), lo que le da un aspecto moderno y profesional. El proyecto está configurado con ESLint para mantener la calidad del código y sigue las mejores prácticas de desarrollo de Next.js.
+Eres un asistente especializado en el **Sistema de Inventario de Usuarios** desarrollado para la Municipalidad de Carrillo. Este es un sistema web moderno construido con Next.js, React y Material-UI que permite gestionar usuarios y sus equipos tecnológicos asignados.
 
-## Características Principales
+## 🏗️ Arquitectura Técnica
 
-- **Gestión de Usuarios:** La funcionalidad central de la aplicación es la gestión de usuarios. Permite ver una lista de usuarios, con detalles como nombre, nombre de usuario, correo electrónico, rol y teléfono.
-- **Interfaz de Usuario Moderna:** Utiliza Material-UI para componentes de interfaz de usuario, como tarjetas, botones, íconos y un layout de panel de administración.
-- **Panel de Administración:** Cuenta con un layout privado (`LayoutPrivado`) que incluye una barra de navegación superior y un menú lateral (Drawer) para la navegación principal.
-- **Página de Inicio de Sesión:** Incluye una página de inicio de sesión (`/login`) con campos para correo y contraseña.
-- **Componentes Reutilizables:** El componente `UserItem` se utiliza para mostrar la información de cada usuario de manera consistente.
+### Stack Tecnológico
+- **Frontend**: Next.js 15.4.2 con App Router
+- **UI Framework**: Material-UI (MUI) 7.2.0
+- **Lenguaje**: TypeScript 5 con configuración estricta
+- **Estilos**: CSS Grid, Flexbox, Emotion
+- **Estado**: React Hooks (useState, useMemo, useEffect)
+- **Herramientas**: ESLint, Next.js Lint
 
-## Estructura del Proyecto
+### Estructura del Proyecto
+```
+src/
+├── app/                    # Páginas de Next.js App Router
+│   ├── layout.tsx         # Layout principal con metadatos
+│   ├── page.tsx           # Dashboard principal
+│   ├── login/             # Página de login (básica)
+│   └── config/            # Página de configuración (en construcción)
+├── components/            # Componentes reutilizables
+│   ├── userItem.tsx       # Tarjeta de usuario individual
+│   └── UserModal.tsx      # Modal para crear/editar usuarios
+├── layouts/               # Layouts específicos
+│   └── LayoutPrivado.tsx  # Layout con navegación lateral
+├── users/                 # Página de gestión de usuarios
+│   └── page.tsx
+├── types/                 # Definiciones de tipos TypeScript
+│   └── user.ts
+└── data/                  # Datos mock y utilidades
+    └── users.ts
+```
 
-El proyecto sigue la estructura estándar de una aplicación Next.js:
+## 📊 Modelo de Datos
 
-- **`src/app/`:** Contiene las rutas principales de la aplicación.
-  - **`layout.tsx`:** El layout raíz de la aplicación.
-  - **`page.tsx`:** La página de inicio, que actualmente renderiza la página de gestión de usuarios.
-  - **`login/page.tsx`:** La página de inicio de sesión.
-- **`src/components/`:** Contiene componentes de React reutilizables.
-  - **`userItem.tsx`:** Componente para mostrar la información de un usuario.
-- **`src/layouts/`:** Contiene los layouts de la aplicación.
-  - **`LayoutPrivado.tsx`:** Layout para las páginas privadas que requieren autenticación.
-- **`src/users/`:** Contiene las páginas relacionadas con la gestión de usuarios.
-  - **`page.tsx`:** La página principal para la gestión de usuarios.
-- **`public/`:** Contiene los archivos estáticos, como imágenes y SVGs.
-- **`package.json`:** Define los scripts y dependencias del proyecto, que incluyen `next`, `react`, `react-dom`, `@mui/material`, `@emotion/react`, y `@emotion/styled`.
+### Interfaz UserData
+```typescript
+interface UserData {
+  numeroEmpleado: string      // Identificador único
+  nombreCompleto: string      // Nombre completo del empleado
+  usuario: string            // Nombre de usuario del sistema
+  edificio: string           // Ubicación física
+  departamento: string       // Departamento asignado
+  puesto: string             // Cargo o posición
+  estadoEquipo: string       // 'Activo' | 'Inactivo' | 'En reparación'
+  estadoUsuario: string      // 'Activo' | 'Inactivo' | 'En reparación'
+  sistemaOperativo: string   // Windows 11, Windows 10, macOS, Linux
+  serviceTag: string         // Identificador del equipo
+  fabricante: string         // Dell, HP, Apple, Lenovo, etc.
+  tipo: string              // Laptop, Desktop, Tablet
+  modelo: string            // Modelo específico del equipo
+  direccionMac: string      // Dirección MAC del equipo
+}
+```
 
-## Scripts Disponibles
+## 🚀 Funcionalidades Implementadas
 
-- **`npm run dev`:** Inicia el servidor de desarrollo con Turbopack.
-- **`npm run build`:** Compila la aplicación para producción.
-- **`npm run start`:** Inicia el servidor de producción.
-- **`npm run lint`:** Ejecuta ESLint para analizar el código en busca de errores y problemas de estilo.
+### ✅ Dashboard Principal (/)
+- **Métricas en tiempo real**: Total de usuarios, usuarios activos, equipos activos, equipos en reparación
+- **Usuarios recientes**: Lista de los últimos 5 usuarios
+- **Resumen por departamento**: Estadísticas organizadas por departamento
+- **Diseño responsive**: Adaptable a diferentes tamaños de pantalla
 
-## Próximos Pasos
+### ✅ Gestión de Usuarios (/users)
+- **CRUD completo**: Crear, leer, actualizar y eliminar usuarios
+- **Búsqueda en tiempo real**: Por nombre, usuario, departamento o número de empleado
+- **Modal interactivo**: Formulario completo con validación
+- **Validaciones robustas**: Campos obligatorios, formato MAC, números únicos
+- **Notificaciones**: Feedback visual con Snackbar
+- **Indicadores visuales**: Chips de colores para estados
 
-- **Implementar la lógica de autenticación:** Conectar la página de inicio de sesión a un servicio de autenticación real.
-- **Conectar a una base de datos:** Reemplazar los datos de ejemplo en `users/page.tsx` con datos de una base de datos.
-- **Implementar la funcionalidad de edición y eliminación:** Agregar la lógica para editar y eliminar usuarios.
-- **Mejorar la UI/UX:** Añadir feedback al usuario en las acciones de editar/eliminar, implementar paginación o búsqueda si la lista de usuarios crece.
-- **Crear un loop para la lista de usuarios:** En `src/users/page.tsx`, iterar sobre una lista de usuarios para renderizar dinámicamente los componentes `UserItem`. **HECHO**
-- **Refactorizar `UserItem` para aceptar props:** El componente `UserItem` ha sido refactorizado para aceptar las propiedades de un usuario y mostrarlas dinámicamente. **HECHO**
+### ✅ Navegación y Layout
+- **Menú lateral**: Navegación entre secciones
+- **Barra superior**: Título del sistema y avatar de usuario
+- **Responsive**: Adaptable a móviles y desktop
+- **Indicadores activos**: Resaltado de página actual
+
+### ✅ Configuración (/config)
+- **Página en construcción**: Mensaje informativo
+- **Roadmap visual**: Lista de funcionalidades pendientes
+- **Iconografía**: Indicadores visuales para cada función
+
+## 🔧 Características Técnicas
+
+### Validaciones Implementadas
+- **Número de empleado**: Requerido y único
+- **Campos obligatorios**: Nombre, usuario, edificio, departamento, puesto
+- **Dirección MAC**: Formato válido (00:1B:44:11:3A:B7)
+- **Validación en tiempo real**: Errores se muestran mientras el usuario escribe
+- **Limpieza automática**: Errores se limpian al corregir
+
+### Experiencia de Usuario
+- **Accesibilidad**: Aria-labels, navegación por teclado
+- **Feedback inmediato**: Notificaciones de éxito/error
+- **Confirmaciones**: Antes de eliminar usuarios
+- **Diseño intuitivo**: Interfaz clara y fácil de usar
+
+### Performance
+- **Memoización**: useMemo para filtros y cálculos
+- **Lazy loading**: Componentes cargados bajo demanda
+- **Optimización**: Build optimizado para producción
+
+## 🔄 Funcionalidades Pendientes
+
+### Configuración del Sistema
+- [ ] Cambio de idioma (Español, Inglés)
+- [ ] Modo nocturno / tema oscuro
+- [ ] Sistema de notificaciones
+- [ ] Configuración de seguridad y permisos
+- [ ] Backup y restauración automática
+- [ ] Personalización de interfaz
+- [ ] Configuración de reportes
+
+### Otras Funcionalidades
+- [ ] Autenticación y autorización real
+- [ ] Exportación de datos a CSV/Excel
+- [ ] Paginación para listas grandes
+- [ ] Filtros avanzados
+- [ ] Historial de cambios
+- [ ] API REST para persistencia
+- [ ] Tests unitarios y de integración
+
+## 🎨 Diseño y UX
+
+### Principios de Diseño
+- **Material Design**: Siguiendo las guías de Material-UI
+- **Responsive First**: Diseño móvil primero
+- **Accesibilidad**: Cumpliendo estándares WCAG
+- **Consistencia**: Patrones de diseño uniformes
+
+### Paleta de Colores
+- **Primario**: Azul Material-UI
+- **Secundario**: Verde para estados activos
+- **Error**: Rojo para errores y estados inactivos
+- **Advertencia**: Naranja para equipos en reparación
+
+## 📝 Convenciones de Código
+
+### TypeScript
+- **Configuración estricta**: `strict: true`
+- **Tipos explícitos**: Interfaces bien definidas
+- **Sin any**: Uso de tipos específicos
+
+### React
+- **Functional Components**: Hooks modernos
+- **Props tipadas**: Interfaces para props
+- **Estado local**: useState para estado simple
+- **Efectos controlados**: useEffect con dependencias
+
+### Estilos
+- **Material-UI sx**: Estilos inline cuando sea necesario
+- **CSS Grid**: Para layouts complejos
+- **Flexbox**: Para alineaciones simples
+- **Responsive**: Breakpoints xs, sm, md, lg, xl
+
+## 🚀 Comandos de Desarrollo
+
+```bash
+# Instalación
+npm install
+
+# Desarrollo
+npm run dev
+
+# Construcción
+npm run build
+
+# Producción
+npm start
+
+# Linting
+npm run lint
+
+# Verificación de tipos
+npx tsc --noEmit
+```
+
+## 🎯 Contexto de Uso
+
+Este sistema está diseñado para:
+1. **Gestión de inventario**: Control de equipos tecnológicos
+2. **Administración de usuarios**: Gestión de empleados y sus recursos
+3. **Reportes**: Generación de estadísticas y métricas
+4. **Auditoría**: Seguimiento de cambios y estados
+
+El sistema es escalable y está preparado para integrarse con:
+- Sistemas de autenticación corporativos
+- Bases de datos empresariales
+- APIs de terceros
+- Sistemas de notificaciones
+
+## 💡 Notas Importantes
+
+- **Datos mock**: Actualmente usa datos de ejemplo en `src/data/users.ts`
+- **Sin persistencia**: Los cambios se pierden al recargar la página
+- **Sin autenticación**: Acceso directo sin login
+- **Desarrollo activo**: Funcionalidades en constante evolución
+
+Este contexto te permite entender completamente el sistema y proporcionar asistencia técnica precisa para cualquier consulta o mejora que se requiera.

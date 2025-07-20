@@ -29,6 +29,14 @@ Sistema de gestión de inventario de usuarios y equipos tecnológicos para la Mu
 - [ ] Notificaciones en tiempo real
 - [ ] Backup automático de datos
 - [ ] Búsqueda avanzada con múltiples criterios
+- [ ] **Configuración del Sistema**:
+  - [ ] Cambio de idioma (Español, Inglés)
+  - [ ] Modo nocturno / tema oscuro
+  - [ ] Sistema de notificaciones
+  - [ ] Configuración de seguridad y permisos
+  - [ ] Backup y restauración automática
+  - [ ] Personalización de interfaz
+  - [ ] Configuración de reportes
 
 ## 🛠️ Tecnologías
 
