@@ -7,15 +7,20 @@ import {
   DialogActions,
   Button,
   TextField,
-  Box,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  FormHelperText,
+  Box,
+  Typography,
+  Alert,
+  IconButton,
 } from '@mui/material'
+import CloseIcon from '@mui/icons-material/Close'
 import { useState, useEffect } from 'react'
 import { UserData } from '@/types/user'
+import { validateUserData, safeValidateUserData } from '@/schemas/user'
+import { validateAndSanitizeInput } from '@/utils/security'
 
 interface UserModalProps {
   open: boolean
@@ -42,35 +47,10 @@ const initialUserData: UserData = {
   direccionMac: '',
 }
 
-const edificios = ['Edificio A', 'Edificio B', 'Edificio C', 'Edificio D']
-const departamentos = [
-  'Recursos Humanos',
-  'Tecnologías de la Información',
-  'Finanzas',
-  'Ventas',
-  'Marketing',
-  'Operaciones',
-  'Legal',
-  'Administración'
-]
-const puestos = [
-  'Analista',
-  'Desarrollador',
-  'Soporte Técnico',
-  'Gerente',
-  'Director',
-  'Asistente',
-  'Coordinador',
-  'Especialista'
-]
-const sistemasOperativos = ['Windows 11', 'Windows 10', 'macOS Sonoma', 'Linux']
-const fabricantes = ['Dell', 'HP', 'Apple', 'Lenovo', 'Asus', 'Acer']
-const tiposEquipo = ['Laptop', 'Desktop', 'Tablet']
-const estados = ['Activo', 'Inactivo', 'En reparación']
-
 export default function UserModal({ open, onClose, onSave, user, mode }: UserModalProps) {
   const [formData, setFormData] = useState<UserData>(initialUserData)
-  const [errors, setErrors] = useState<Partial<Record<keyof UserData, string>>>({})
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     if (user && mode === 'edit') {
@@ -81,304 +61,308 @@ export default function UserModal({ open, onClose, onSave, user, mode }: UserMod
     setErrors({})
   }, [user, mode, open])
 
+  const handleInputChange = (field: keyof UserData, value: string) => {
+    // Sanitizar entrada del usuario
+    const sanitizedValue = validateAndSanitizeInput(value)
+    if (sanitizedValue.success) {
+      setFormData(prev => ({ ...prev, [field]: sanitizedValue.data }))
+      // Limpiar error del campo si existe
+      if (errors[field]) {
+        setErrors(prev => ({ ...prev, [field]: '' }))
+      }
+    } else {
+      setErrors(prev => ({ ...prev, [field]: sanitizedValue.error }))
+    }
+  }
+
   const validateForm = (): boolean => {
-    const newErrors: Partial<Record<keyof UserData, string>> = {}
-
-    if (!formData.numeroEmpleado.trim()) {
-      newErrors.numeroEmpleado = 'El número de empleado es requerido'
+    try {
+      validateUserData(formData)
+      setErrors({})
+      return true
+    } catch (error) {
+      if (error instanceof Error) {
+        const validationErrors: Record<string, string> = {}
+        // Parsear errores de Zod
+        if (error.message.includes('ZodError')) {
+          // Manejar errores específicos de Zod
+          validationErrors.general = 'Por favor, corrige los errores en el formulario'
+        } else {
+          validationErrors.general = error.message
+        }
+        setErrors(validationErrors)
+      }
+      return false
     }
-
-    if (!formData.nombreCompleto.trim()) {
-      newErrors.nombreCompleto = 'El nombre completo es requerido'
-    }
-
-    if (!formData.usuario.trim()) {
-      newErrors.usuario = 'El usuario es requerido'
-    }
-
-    if (!formData.edificio.trim()) {
-      newErrors.edificio = 'El edificio es requerido'
-    }
-
-    if (!formData.departamento.trim()) {
-      newErrors.departamento = 'El departamento es requerido'
-    }
-
-    if (!formData.puesto.trim()) {
-      newErrors.puesto = 'El puesto es requerido'
-    }
-
-    if (!formData.serviceTag.trim()) {
-      newErrors.serviceTag = 'El Service Tag es requerido'
-    }
-
-    if (!formData.modelo.trim()) {
-      newErrors.modelo = 'El modelo es requerido'
-    }
-
-    if (!formData.direccionMac.trim()) {
-      newErrors.direccionMac = 'La dirección MAC es requerida'
-    } else if (!/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/.test(formData.direccionMac)) {
-      newErrors.direccionMac = 'Formato de dirección MAC inválido (ej: 00:1B:44:11:3A:B7)'
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = () => {
-    if (validateForm()) {
-      onSave(formData)
+  const handleSubmit = async () => {
+    setIsSubmitting(true)
+    
+    try {
+      // Validar formulario
+      if (!validateForm()) {
+        setIsSubmitting(false)
+        return
+      }
+
+      // Validar datos con Zod
+      const validationResult = safeValidateUserData(formData)
+      if (!validationResult.success) {
+        setErrors({ general: validationResult.error })
+        setIsSubmitting(false)
+        return
+      }
+
+      // Simular delay para mostrar estado de carga
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      onSave(validationResult.data)
       onClose()
-    }
-  }
-
-  const handleChange = (field: keyof UserData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    // Limpiar error del campo cuando el usuario empiece a escribir
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }))
+    } catch (error) {
+      setErrors({ general: 'Error al guardar el usuario' })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   const handleClose = () => {
-    setFormData(initialUserData)
-    setErrors({})
-    onClose()
+    if (!isSubmitting) {
+      setFormData(initialUserData)
+      setErrors({})
+      onClose()
+    }
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-      <DialogTitle>
-        {mode === 'create' ? 'Crear Nuevo Usuario' : 'Editar Usuario'}
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 2,
+        },
+      }}
+    >
+      <DialogTitle sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        pb: 1
+      }}>
+        <Typography variant="h6">
+          {mode === 'create' ? 'Crear Usuario' : 'Editar Usuario'}
+        </Typography>
+        <IconButton
+          onClick={handleClose}
+          disabled={isSubmitting}
+          sx={{ color: 'text.secondary' }}
+        >
+          <CloseIcon />
+        </IconButton>
       </DialogTitle>
-      <DialogContent>
-        <Box sx={{ pt: 2 }}>
-          <Box sx={{ 
-            display: 'grid', 
-            gridTemplateColumns: { 
-              xs: '1fr', 
-              sm: 'repeat(2, 1fr)', 
-              md: 'repeat(12, 1fr)' 
-            }, 
-            gap: 2 
-          }}>
-            {/* Información Personal */}
-            <Box gridColumn={{ xs: '1', md: 'span 12' }}>
-              <TextField
-                fullWidth
-                label="Número de Empleado"
-                value={formData.numeroEmpleado}
-                onChange={(e) => handleChange('numeroEmpleado', e.target.value)}
-                error={!!errors.numeroEmpleado}
-                helperText={errors.numeroEmpleado}
-                required
-              />
-            </Box>
-            <Box gridColumn={{ xs: '1', md: 'span 6' }}>
-              <TextField
-                fullWidth
-                label="Nombre Completo"
-                value={formData.nombreCompleto}
-                onChange={(e) => handleChange('nombreCompleto', e.target.value)}
-                error={!!errors.nombreCompleto}
-                helperText={errors.nombreCompleto}
-                required
-              />
-            </Box>
-            <Box gridColumn={{ xs: '1', md: 'span 6' }}>
-              <TextField
-                fullWidth
-                label="Usuario"
-                value={formData.usuario}
-                onChange={(e) => handleChange('usuario', e.target.value)}
-                error={!!errors.usuario}
-                helperText={errors.usuario}
-                required
-              />
-            </Box>
 
-            {/* Información Laboral */}
-            <Box gridColumn={{ xs: '1', md: 'span 4' }}>
-              <FormControl fullWidth error={!!errors.edificio} required>
-                <InputLabel>Edificio</InputLabel>
-                <Select
-                  value={formData.edificio}
-                  label="Edificio"
-                  onChange={(e) => handleChange('edificio', e.target.value)}
-                >
-                  {edificios.map((edificio) => (
-                    <MenuItem key={edificio} value={edificio}>
-                      {edificio}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.edificio && <FormHelperText>{errors.edificio}</FormHelperText>}
-              </FormControl>
-            </Box>
-            <Box gridColumn={{ xs: '1', md: 'span 4' }}>
-              <FormControl fullWidth error={!!errors.departamento} required>
-                <InputLabel>Departamento</InputLabel>
-                <Select
-                  value={formData.departamento}
-                  label="Departamento"
-                  onChange={(e) => handleChange('departamento', e.target.value)}
-                >
-                  {departamentos.map((dept) => (
-                    <MenuItem key={dept} value={dept}>
-                      {dept}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.departamento && <FormHelperText>{errors.departamento}</FormHelperText>}
-              </FormControl>
-            </Box>
-            <Box gridColumn={{ xs: '1', md: 'span 4' }}>
-              <FormControl fullWidth error={!!errors.puesto} required>
-                <InputLabel>Puesto</InputLabel>
-                <Select
-                  value={formData.puesto}
-                  label="Puesto"
-                  onChange={(e) => handleChange('puesto', e.target.value)}
-                >
-                  {puestos.map((puesto) => (
-                    <MenuItem key={puesto} value={puesto}>
-                      {puesto}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.puesto && <FormHelperText>{errors.puesto}</FormHelperText>}
-              </FormControl>
-            </Box>
+      <DialogContent sx={{ pt: 1 }}>
+        {errors.general && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {errors.general}
+          </Alert>
+        )}
 
-            {/* Estados */}
-            <Box gridColumn={{ xs: '1', md: 'span 6' }}>
-              <FormControl fullWidth>
-                <InputLabel>Estado del Usuario</InputLabel>
-                <Select
-                  value={formData.estadoUsuario}
-                  label="Estado del Usuario"
-                  onChange={(e) => handleChange('estadoUsuario', e.target.value)}
-                >
-                  {estados.map((estado) => (
-                    <MenuItem key={estado} value={estado}>
-                      {estado}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-            <Box gridColumn={{ xs: '1', md: 'span 6' }}>
-              <FormControl fullWidth>
-                <InputLabel>Estado del Equipo</InputLabel>
-                <Select
-                  value={formData.estadoEquipo}
-                  label="Estado del Equipo"
-                  onChange={(e) => handleChange('estadoEquipo', e.target.value)}
-                >
-                  {estados.map((estado) => (
-                    <MenuItem key={estado} value={estado}>
-                      {estado}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
+        <Box sx={{ 
+          display: 'grid', 
+          gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, 
+          gap: 2 
+        }}>
+          <TextField
+            label="Número de Empleado"
+            value={formData.numeroEmpleado}
+            onChange={(e) => handleInputChange('numeroEmpleado', e.target.value)}
+            error={!!errors.numeroEmpleado}
+            helperText={errors.numeroEmpleado}
+            fullWidth
+            required
+            disabled={isSubmitting}
+          />
 
-            {/* Información del Equipo */}
-            <Box gridColumn={{ xs: '1', md: 'span 6' }}>
-              <FormControl fullWidth>
-                <InputLabel>Sistema Operativo</InputLabel>
-                <Select
-                  value={formData.sistemaOperativo}
-                  label="Sistema Operativo"
-                  onChange={(e) => handleChange('sistemaOperativo', e.target.value)}
-                >
-                  {sistemasOperativos.map((os) => (
-                    <MenuItem key={os} value={os}>
-                      {os}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-            <Box gridColumn={{ xs: '1', md: 'span 6' }}>
-              <TextField
-                fullWidth
-                label="Service Tag"
-                value={formData.serviceTag}
-                onChange={(e) => handleChange('serviceTag', e.target.value)}
-                error={!!errors.serviceTag}
-                helperText={errors.serviceTag}
-                required
-              />
-            </Box>
-            <Box gridColumn={{ xs: '1', md: 'span 4' }}>
-              <FormControl fullWidth>
-                <InputLabel>Fabricante</InputLabel>
-                <Select
-                  value={formData.fabricante}
-                  label="Fabricante"
-                  onChange={(e) => handleChange('fabricante', e.target.value)}
-                >
-                  {fabricantes.map((fabricante) => (
-                    <MenuItem key={fabricante} value={fabricante}>
-                      {fabricante}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-            <Box gridColumn={{ xs: '1', md: 'span 4' }}>
-              <FormControl fullWidth>
-                <InputLabel>Tipo de Equipo</InputLabel>
-                <Select
-                  value={formData.tipo}
-                  label="Tipo de Equipo"
-                  onChange={(e) => handleChange('tipo', e.target.value)}
-                >
-                  {tiposEquipo.map((tipo) => (
-                    <MenuItem key={tipo} value={tipo}>
-                      {tipo}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-            <Box gridColumn={{ xs: '1', md: 'span 4' }}>
-              <TextField
-                fullWidth
-                label="Modelo"
-                value={formData.modelo}
-                onChange={(e) => handleChange('modelo', e.target.value)}
-                error={!!errors.modelo}
-                helperText={errors.modelo}
-                required
-              />
-            </Box>
-            <Box gridColumn={{ xs: '1', md: 'span 12' }}>
-              <TextField
-                fullWidth
-                label="Dirección MAC"
-                value={formData.direccionMac}
-                onChange={(e) => handleChange('direccionMac', e.target.value)}
-                error={!!errors.direccionMac}
-                helperText={errors.direccionMac || 'Formato: 00:1B:44:11:3A:B7'}
-                required
-                placeholder="00:1B:44:11:3A:B7"
-              />
-            </Box>
-          </Box>
+          <TextField
+            label="Nombre Completo"
+            value={formData.nombreCompleto}
+            onChange={(e) => handleInputChange('nombreCompleto', e.target.value)}
+            error={!!errors.nombreCompleto}
+            helperText={errors.nombreCompleto}
+            fullWidth
+            required
+            disabled={isSubmitting}
+          />
+
+          <TextField
+            label="Usuario"
+            value={formData.usuario}
+            onChange={(e) => handleInputChange('usuario', e.target.value)}
+            error={!!errors.usuario}
+            helperText={errors.usuario}
+            fullWidth
+            required
+            disabled={isSubmitting}
+          />
+
+          <TextField
+            label="Edificio"
+            value={formData.edificio}
+            onChange={(e) => handleInputChange('edificio', e.target.value)}
+            error={!!errors.edificio}
+            helperText={errors.edificio}
+            fullWidth
+            required
+            disabled={isSubmitting}
+          />
+
+          <TextField
+            label="Departamento"
+            value={formData.departamento}
+            onChange={(e) => handleInputChange('departamento', e.target.value)}
+            error={!!errors.departamento}
+            helperText={errors.departamento}
+            fullWidth
+            required
+            disabled={isSubmitting}
+          />
+
+          <TextField
+            label="Puesto"
+            value={formData.puesto}
+            onChange={(e) => handleInputChange('puesto', e.target.value)}
+            error={!!errors.puesto}
+            helperText={errors.puesto}
+            fullWidth
+            required
+            disabled={isSubmitting}
+          />
+
+          <FormControl fullWidth required disabled={isSubmitting}>
+            <InputLabel>Estado del Equipo</InputLabel>
+            <Select
+              value={formData.estadoEquipo}
+              onChange={(e) => handleInputChange('estadoEquipo', e.target.value)}
+              label="Estado del Equipo"
+            >
+              <MenuItem value="Activo">Activo</MenuItem>
+              <MenuItem value="Inactivo">Inactivo</MenuItem>
+              <MenuItem value="En reparación">En reparación</MenuItem>
+            </Select>
+          </FormControl>
+
+          <FormControl fullWidth required disabled={isSubmitting}>
+            <InputLabel>Estado del Usuario</InputLabel>
+            <Select
+              value={formData.estadoUsuario}
+              onChange={(e) => handleInputChange('estadoUsuario', e.target.value)}
+              label="Estado del Usuario"
+            >
+              <MenuItem value="Activo">Activo</MenuItem>
+              <MenuItem value="Inactivo">Inactivo</MenuItem>
+              <MenuItem value="En reparación">En reparación</MenuItem>
+            </Select>
+          </FormControl>
+
+          <FormControl fullWidth required disabled={isSubmitting}>
+            <InputLabel>Sistema Operativo</InputLabel>
+            <Select
+              value={formData.sistemaOperativo}
+              onChange={(e) => handleInputChange('sistemaOperativo', e.target.value)}
+              label="Sistema Operativo"
+            >
+              <MenuItem value="Windows 11">Windows 11</MenuItem>
+              <MenuItem value="Windows 10">Windows 10</MenuItem>
+              <MenuItem value="macOS Sonoma">macOS Sonoma</MenuItem>
+              <MenuItem value="Linux">Linux</MenuItem>
+            </Select>
+          </FormControl>
+
+          <TextField
+            label="Service Tag"
+            value={formData.serviceTag}
+            onChange={(e) => handleInputChange('serviceTag', e.target.value)}
+            error={!!errors.serviceTag}
+            helperText={errors.serviceTag}
+            fullWidth
+            required
+            disabled={isSubmitting}
+          />
+
+          <FormControl fullWidth required disabled={isSubmitting}>
+            <InputLabel>Fabricante</InputLabel>
+            <Select
+              value={formData.fabricante}
+              onChange={(e) => handleInputChange('fabricante', e.target.value)}
+              label="Fabricante"
+            >
+              <MenuItem value="Dell">Dell</MenuItem>
+              <MenuItem value="HP">HP</MenuItem>
+              <MenuItem value="Apple">Apple</MenuItem>
+              <MenuItem value="Lenovo">Lenovo</MenuItem>
+              <MenuItem value="Asus">Asus</MenuItem>
+              <MenuItem value="Acer">Acer</MenuItem>
+            </Select>
+          </FormControl>
+
+          <FormControl fullWidth required disabled={isSubmitting}>
+            <InputLabel>Tipo</InputLabel>
+            <Select
+              value={formData.tipo}
+              onChange={(e) => handleInputChange('tipo', e.target.value)}
+              label="Tipo"
+            >
+              <MenuItem value="Laptop">Laptop</MenuItem>
+              <MenuItem value="Desktop">Desktop</MenuItem>
+              <MenuItem value="Tablet">Tablet</MenuItem>
+            </Select>
+          </FormControl>
+
+          <TextField
+            label="Modelo"
+            value={formData.modelo}
+            onChange={(e) => handleInputChange('modelo', e.target.value)}
+            error={!!errors.modelo}
+            helperText={errors.modelo}
+            fullWidth
+            required
+            disabled={isSubmitting}
+          />
+
+          <TextField
+            label="Dirección MAC"
+            value={formData.direccionMac}
+            onChange={(e) => handleInputChange('direccionMac', e.target.value)}
+            error={!!errors.direccionMac}
+            helperText={errors.direccionMac || 'Formato: 00:1B:44:11:3A:B7'}
+            fullWidth
+            required
+            disabled={isSubmitting}
+            placeholder="00:1B:44:11:3A:B7"
+          />
         </Box>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose}>Cancelar</Button>
-        <Button 
-          onClick={handleSubmit} 
-          variant="contained" 
-          color="primary"
+
+      <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+        <Button
+          onClick={handleClose}
+          variant="outlined"
+          disabled={isSubmitting}
+          sx={{ minWidth: 100 }}
         >
-          {mode === 'create' ? 'Crear Usuario' : 'Guardar Cambios'}
+          Cancelar
+        </Button>
+        <Button
+          onClick={handleSubmit}
+          variant="contained"
+          disabled={isSubmitting}
+          sx={{ minWidth: 100 }}
+        >
+          {isSubmitting ? 'Guardando...' : 'Guardar'}
         </Button>
       </DialogActions>
     </Dialog>
