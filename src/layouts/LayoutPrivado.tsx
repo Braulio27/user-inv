@@ -14,14 +14,18 @@ import {
   Avatar,
   Divider,
   IconButton,
-  Tooltip
+  Tooltip,
+  useTheme,
+  useMediaQuery
 } from '@mui/material'
 import GroupIcon from '@mui/icons-material/Group';
 import SettingsApplicationsIcon from '@mui/icons-material/SettingsApplications';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import LogoutIcon from '@mui/icons-material/Logout';
+import MenuIcon from '@mui/icons-material/Menu';
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useState } from 'react'
 
 const drawerWidth = 240
 
@@ -33,22 +37,86 @@ const menuItems = [
 
 export default function LayoutPrivado({ children }: { children: React.ReactNode }) {
     const pathname = usePathname()
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+    const [mobileOpen, setMobileOpen] = useState(false)
+
+    const handleDrawerToggle = () => {
+        setMobileOpen(!mobileOpen)
+    }
 
     const handleLogout = () => {
         // TODO: Implementar logout
         alert('Cerrar sesión')
     }
 
+    const drawer = (
+        <Box sx={{ overflow: 'auto' }}>
+            <List>
+                {menuItems.map((item) => (
+                    <ListItem key={item.text} disablePadding>
+                        <ListItemButton 
+                            component={Link} 
+                            href={item.href}
+                            selected={pathname === item.href}
+                            onClick={() => isMobile && setMobileOpen(false)}
+                            sx={{
+                                '&.Mui-selected': {
+                                    backgroundColor: 'primary.light',
+                                    '&:hover': {
+                                        backgroundColor: 'primary.light',
+                                    }
+                                }
+                            }}
+                        >
+                            <ListItemIcon sx={{ color: pathname === item.href ? 'primary.main' : 'inherit' }}>
+                                {item.icon}
+                            </ListItemIcon>
+                            <ListItemText 
+                                primary={item.text} 
+                                sx={{ 
+                                    color: pathname === item.href ? 'primary.main' : 'inherit',
+                                    fontWeight: pathname === item.href ? 'bold' : 'normal'
+                                }}
+                            />
+                        </ListItemButton>
+                    </ListItem>
+                ))}
+            </List>
+            <Divider />
+            <Box sx={{ p: 2 }}>
+                <Typography variant="caption" color="text.secondary">
+                    Versión 1.0.0
+                </Typography>
+            </Box>
+        </Box>
+    )
+
     return (
         <Box sx={{ display: 'flex' }}>
             <AppBar
                 position="fixed"
-                sx={{ width: `calc(100% - ${drawerWidth}px)`, ml: `${drawerWidth}px` }}
+                sx={{ 
+                    width: { md: `calc(100% - ${drawerWidth}px)` }, 
+                    ml: { md: `${drawerWidth}px` },
+                    zIndex: theme.zIndex.drawer + 1
+                }}
             >
                 <Toolbar sx={{ justifyContent: 'space-between' }}>
-                    <Typography variant="h6" noWrap>
-                        Sistema de Inventario de Usuarios
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <IconButton
+                            color="inherit"
+                            aria-label="abrir menú"
+                            edge="start"
+                            onClick={handleDrawerToggle}
+                            sx={{ mr: 2, display: { md: 'none' } }}
+                        >
+                            <MenuIcon />
+                        </IconButton>
+                        <Typography variant="h6" noWrap>
+                            Sistema de Inventario de Usuarios
+                        </Typography>
+                    </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main' }}>
                             A
@@ -62,56 +130,55 @@ export default function LayoutPrivado({ children }: { children: React.ReactNode 
                 </Toolbar>
             </AppBar>
 
-            <Drawer
-                variant="permanent"
-                sx={{
-                    width: drawerWidth,
-                    flexShrink: 0,
-                    [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box' },
+            <Box
+                component="nav"
+                sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
+            >
+                {/* Drawer móvil */}
+                <Drawer
+                    variant="temporary"
+                    open={mobileOpen}
+                    onClose={handleDrawerToggle}
+                    ModalProps={{
+                        keepMounted: true, // Mejor performance en móviles
+                    }}
+                    sx={{
+                        display: { xs: 'block', md: 'none' },
+                        '& .MuiDrawer-paper': { 
+                            boxSizing: 'border-box', 
+                            width: drawerWidth 
+                        },
+                    }}
+                >
+                    <Toolbar />
+                    {drawer}
+                </Drawer>
+
+                {/* Drawer desktop */}
+                <Drawer
+                    variant="permanent"
+                    sx={{
+                        display: { xs: 'none', md: 'block' },
+                        '& .MuiDrawer-paper': { 
+                            boxSizing: 'border-box', 
+                            width: drawerWidth 
+                        },
+                    }}
+                    open
+                >
+                    <Toolbar />
+                    {drawer}
+                </Drawer>
+            </Box>
+
+            <Box 
+                component="main" 
+                sx={{ 
+                    flexGrow: 1, 
+                    p: 3,
+                    width: { md: `calc(100% - ${drawerWidth}px)` }
                 }}
             >
-                <Toolbar />
-                <Box sx={{ overflow: 'auto' }}>
-                    <List>
-                        {menuItems.map((item) => (
-                            <ListItem key={item.text} disablePadding>
-                                <ListItemButton 
-                                    component={Link} 
-                                    href={item.href}
-                                    selected={pathname === item.href}
-                                    sx={{
-                                        '&.Mui-selected': {
-                                            backgroundColor: 'primary.light',
-                                            '&:hover': {
-                                                backgroundColor: 'primary.light',
-                                            }
-                                        }
-                                    }}
-                                >
-                                    <ListItemIcon sx={{ color: pathname === item.href ? 'primary.main' : 'inherit' }}>
-                                        {item.icon}
-                                    </ListItemIcon>
-                                    <ListItemText 
-                                        primary={item.text} 
-                                        sx={{ 
-                                            color: pathname === item.href ? 'primary.main' : 'inherit',
-                                            fontWeight: pathname === item.href ? 'bold' : 'normal'
-                                        }}
-                                    />
-                                </ListItemButton>
-                            </ListItem>
-                        ))}
-                    </List>
-                    <Divider />
-                    <Box sx={{ p: 2 }}>
-                        <Typography variant="caption" color="text.secondary">
-                            Versión 1.0.0
-                        </Typography>
-                    </Box>
-                </Box>
-            </Drawer>
-
-            <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
                 <Toolbar />
                 {children}
             </Box>

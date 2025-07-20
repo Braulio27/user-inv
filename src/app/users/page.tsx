@@ -43,10 +43,8 @@ export default function UsuariosPage() {
   }
 
   const handleDelete = (user: UserData) => {
-    if (confirm(`¿Estás seguro de que deseas eliminar a ${user.nombreCompleto}?`)) {
-      setUsers(users.filter(u => u.numeroEmpleado !== user.numeroEmpleado))
-      showSnackbar('Usuario eliminado exitosamente', 'success')
-    }
+    setUsers(users.filter(u => u.numeroEmpleado !== user.numeroEmpleado))
+    showSnackbar('Usuario eliminado exitosamente', 'success')
   }
 
   const handleAddUser = () => {
