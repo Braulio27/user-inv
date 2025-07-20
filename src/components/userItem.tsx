@@ -8,36 +8,23 @@ import {
   IconButton,
   Collapse,
   Divider,
-  Grid,
+  Chip,
+  Stack,
 } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import { useState } from 'react'
-
-interface UserData {
-  numeroEmpleado: string
-  nombreCompleto: string
-  usuario: string
-  edificio: string
-  departamento: string
-  puesto: string
-  estadoEquipo: string
-  estadoUsuario:string
-  sistemaOperativo: string
-  serviceTag: string
-  fabricante: string
-  tipo: string
-  modelo: string
-  direccionMac: string
-}
+import { UserData } from '@/types/user'
 
 interface UserItemProps {
   user: UserData
+  onEdit?: (user: UserData) => void
+  onDelete?: (user: UserData) => void
 }
 
-export default function UserItem({ user }: UserItemProps) {
+export default function UserItem({ user, onEdit, onDelete }: UserItemProps) {
   const [expanded, setExpanded] = useState(false)
 
   const {
@@ -57,6 +44,37 @@ export default function UserItem({ user }: UserItemProps) {
     direccionMac,
   } = user
 
+  const handleEdit = () => {
+    if (onEdit) {
+      onEdit(user)
+    } else {
+      alert(`Editar ${nombreCompleto}`)
+    }
+  }
+
+  const handleDelete = () => {
+    if (onDelete) {
+      onDelete(user)
+    } else {
+      if (confirm(`¿Estás seguro de que deseas eliminar a ${nombreCompleto}?`)) {
+        alert(`Eliminar ${nombreCompleto}`)
+      }
+    }
+  }
+
+  const getEstadoColor = (estado: string) => {
+    switch (estado.toLowerCase()) {
+      case 'activo':
+        return 'success'
+      case 'inactivo':
+        return 'error'
+      case 'en reparación':
+        return 'warning'
+      default:
+        return 'default'
+    }
+  }
+
   return (
     <Card sx={{ mb: 2 }}>
       <CardContent>
@@ -69,21 +87,39 @@ export default function UserItem({ user }: UserItemProps) {
             <Typography variant="body2" color="text.secondary">
               Usuario: {usuario}
             </Typography>
+            <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+              <Chip 
+                label={`Equipo: ${estadoEquipo}`} 
+                color={getEstadoColor(estadoEquipo) as 'success' | 'error' | 'warning' | 'default'}
+                size="small"
+              />
+              <Chip 
+                label={`Usuario: ${estadoUsuario}`} 
+                color={getEstadoColor(estadoUsuario) as 'success' | 'error' | 'warning' | 'default'}
+                size="small"
+              />
+            </Stack>
           </Box>
           <Box>
             <IconButton
               color="primary"
-              onClick={() => alert(`Editar ${nombreCompleto}`)}
+              onClick={handleEdit}
+              aria-label={`Editar usuario ${nombreCompleto}`}
             >
               <EditIcon />
             </IconButton>
             <IconButton
               color="error"
-              onClick={() => alert(`Eliminar ${nombreCompleto}`)}
+              onClick={handleDelete}
+              aria-label={`Eliminar usuario ${nombreCompleto}`}
             >
               <DeleteIcon />
             </IconButton>
-            <IconButton onClick={() => setExpanded(!expanded)}>
+            <IconButton 
+              onClick={() => setExpanded(!expanded)}
+              aria-label={expanded ? "Ocultar detalles" : "Mostrar detalles"}
+              aria-expanded={expanded}
+            >
               {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
             </IconButton>
           </Box>
@@ -91,41 +127,44 @@ export default function UserItem({ user }: UserItemProps) {
 
         <Collapse in={expanded}>
           <Divider sx={{ my: 2 }} />
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography>Edificio: {edificio}</Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography>Departamento: {departamento}</Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography>Puesto: {puesto}</Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography>Estado del equipo: {estadoEquipo}</Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography>Estado del usuario: {estadoUsuario}</Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography>Sistema Operativo: {sistemaOperativo}</Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography>Service Tag: {serviceTag}</Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography>Fabricante: {fabricante}</Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography>Tipo: {tipo}</Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography>Modelo: {modelo}</Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography>Dirección MAC: {direccionMac}</Typography>
-            </Grid>
-          </Grid>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 2 }}>
+            <Box>
+              <Typography variant="body2" color="text.secondary">Edificio</Typography>
+              <Typography variant="body1">{edificio}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="body2" color="text.secondary">Departamento</Typography>
+              <Typography variant="body1">{departamento}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="body2" color="text.secondary">Puesto</Typography>
+              <Typography variant="body1">{puesto}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="body2" color="text.secondary">Sistema Operativo</Typography>
+              <Typography variant="body1">{sistemaOperativo}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="body2" color="text.secondary">Service Tag</Typography>
+              <Typography variant="body1">{serviceTag}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="body2" color="text.secondary">Fabricante</Typography>
+              <Typography variant="body1">{fabricante}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="body2" color="text.secondary">Tipo</Typography>
+              <Typography variant="body1">{tipo}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="body2" color="text.secondary">Modelo</Typography>
+              <Typography variant="body1">{modelo}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="body2" color="text.secondary">Dirección MAC</Typography>
+              <Typography variant="body1" sx={{ fontFamily: 'monospace' }}>{direccionMac}</Typography>
+            </Box>
+          </Box>
         </Collapse>
       </CardContent>
     </Card>

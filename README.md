@@ -1,36 +1,136 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sistema de Inventario de Usuarios
 
-## Getting Started
+Sistema de gestión de inventario de usuarios y equipos tecnológicos para la Municipalidad de Carrillo.
 
-First, run the development server:
+## 🚀 Características
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### ✅ Implementadas
+- **Dashboard interactivo** con métricas en tiempo real
+- **Gestión de usuarios** con información completa de equipos
+- **Búsqueda y filtrado** de usuarios por nombre, departamento, etc.
+- **Interfaz responsive** optimizada para móviles y desktop
+- **Navegación mejorada** con menú lateral y breadcrumbs
+- **Indicadores visuales** de estado (activo, inactivo, en reparación)
+- **Accesibilidad mejorada** con aria-labels y navegación por teclado
+- **Tipos TypeScript** centralizados y bien definidos
+- **Arquitectura modular** con separación de datos y componentes
+
+### 🔄 Funcionalidades Pendientes
+- [ ] Autenticación y autorización
+- [ ] CRUD completo de usuarios (crear, editar, eliminar)
+- [ ] Exportación de datos a CSV/Excel
+- [ ] Paginación para listas grandes
+- [ ] Filtros avanzados por departamento, estado, etc.
+- [ ] Historial de cambios
+- [ ] Notificaciones en tiempo real
+- [ ] Backup automático de datos
+
+## 🛠️ Tecnologías
+
+- **Frontend**: Next.js 15.4.2, React 19.1.0
+- **UI**: Material-UI (MUI) 7.2.0
+- **Lenguaje**: TypeScript 5
+- **Estilos**: CSS Grid, Flexbox, Emotion
+- **Herramientas**: ESLint, Next.js Lint
+
+## 📁 Estructura del Proyecto
+
+```
+src/
+├── app/                    # Páginas de Next.js App Router
+│   ├── layout.tsx         # Layout principal
+│   ├── page.tsx           # Dashboard
+│   └── login/             # Página de login
+├── components/            # Componentes reutilizables
+│   └── userItem.tsx       # Componente de tarjeta de usuario
+├── layouts/               # Layouts específicos
+│   └── LayoutPrivado.tsx  # Layout con navegación lateral
+├── users/                 # Página de gestión de usuarios
+│   └── page.tsx
+├── types/                 # Definiciones de tipos TypeScript
+│   └── user.ts
+└── data/                  # Datos mock y utilidades
+    └── users.ts
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Instalación y Uso
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Prerrequisitos
+- Node.js 18+ 
+- npm o yarn
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Instalación
+```bash
+# Clonar el repositorio
+git clone <repository-url>
+cd user-inv
 
-## Learn More
+# Instalar dependencias
+npm install
 
-To learn more about Next.js, take a look at the following resources:
+# Ejecutar en modo desarrollo
+npm run dev
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Construir para producción
+npm run build
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Ejecutar en producción
+npm start
+```
 
-## Deploy on Vercel
+### Scripts Disponibles
+- `npm run dev` - Servidor de desarrollo con Turbopack
+- `npm run build` - Construcción optimizada para producción
+- `npm run start` - Servidor de producción
+- `npm run lint` - Verificación de código con ESLint
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📊 Datos de Ejemplo
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+El sistema incluye datos mock de usuarios con información completa:
+- Información personal y laboral
+- Detalles del equipo asignado
+- Estados de usuario y equipo
+- Información técnica (Service Tag, MAC, etc.)
+
+## 🎨 Características de UI/UX
+
+- **Diseño responsive** que se adapta a diferentes tamaños de pantalla
+- **Tema consistente** con Material-UI
+- **Indicadores visuales** con chips de colores para estados
+- **Navegación intuitiva** con menú lateral y breadcrumbs
+- **Búsqueda en tiempo real** con filtrado instantáneo
+- **Accesibilidad** siguiendo estándares WCAG
+
+## 🔧 Configuración
+
+### Variables de Entorno
+Crear archivo `.env.local`:
+```env
+NEXT_PUBLIC_APP_NAME="Sistema de Inventario de Usuarios"
+NEXT_PUBLIC_APP_VERSION="1.0.0"
+```
+
+### TypeScript
+El proyecto está configurado con TypeScript estricto para mayor seguridad de tipos.
+
+## 📝 Contribución
+
+1. Fork el proyecto
+2. Crear una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abrir un Pull Request
+
+## 📄 Licencia
+
+Este proyecto está bajo la licencia MIT. Ver el archivo `LICENSE` para más detalles.
+
+## 👥 Autores
+
+- **Municipalidad de Carrillo** - Desarrollo inicial
+
+## 🙏 Agradecimientos
+
+- Material-UI por el sistema de componentes
+- Next.js por el framework de React
+- La comunidad de TypeScript por las herramientas de desarrollo
