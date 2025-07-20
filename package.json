@@ -17,6 +17,11 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:report": "./scripts/test-report.sh",
+    "test:fix": "npm run test -- --fix",
+    "test:debug": "npm run test -- --verbose",
+    "test:ci": "jest --ci --coverage --watchAll=false",
+    "quality-check": "npm run lint && npm run type-check && npm run test:coverage && npm run security:audit",
     "prepare": "husky install"
   },
   "dependencies": {
