@@ -147,7 +147,6 @@ export class RateLimiter {
 export const UserInputSchema = z.object({
   text: z
     .string()
-    .min(1, 'El texto no puede estar vacío')
     .max(1000, 'El texto no puede exceder 1000 caracteres')
     .refine(validateUserInput, 'El texto contiene caracteres no permitidos'),
 });

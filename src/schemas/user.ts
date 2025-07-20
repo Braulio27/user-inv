@@ -17,6 +17,7 @@ export const UserDataSchema = z.object({
   
   usuario: z
     .string()
+    .min(1, 'El usuario es requerido')
     .min(3, 'El usuario debe tener al menos 3 caracteres')
     .max(50, 'El usuario no puede exceder 50 caracteres')
     .regex(/^[a-z0-9_-]+$/, 'El usuario solo puede contener letras minúsculas, números, guiones y guiones bajos'),
@@ -73,7 +74,7 @@ export const UserDataSchema = z.object({
     .min(1, 'La dirección MAC es requerida')
     .regex(
       /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/,
-      'Formato de dirección MAC inválido (ej: 00:1B:44:11:3A:B7)'
+      'Formato de dirección MAC inválido. Use el formato: 00:1B:44:11:3A:B7'
     ),
 }) satisfies z.ZodType<UserData>;
 
@@ -111,15 +112,37 @@ export const validateUserData = (data: unknown): UserData => {
   return UserDataSchema.parse(data);
 };
 
-// Función de validación segura con manejo de errores
+// Función de validación segura con manejo de errores mejorado
 export const safeValidateUserData = (data: unknown): { success: true; data: UserData } | { success: false; error: string } => {
   try {
     const validatedData = UserDataSchema.parse(data);
     return { success: true, data: validatedData };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0]?.message || 'Datos inválidos' };
+      // Formatear errores de manera más amigable
+      const errorMessages = error.errors.map(err => {
+        const fieldName = err.path.join('.');
+        return `${fieldName}: ${err.message}`;
+      });
+      return { success: false, error: errorMessages.join(', ') };
     }
     return { success: false, error: 'Error de validación desconocido' };
+  }
+};
+
+// Función para validar campos individuales
+export const validateField = (field: keyof UserData, value: string): { isValid: boolean; error?: string } => {
+  try {
+    const fieldSchema = UserDataSchema.shape[field];
+    if (fieldSchema) {
+      fieldSchema.parse(value);
+      return { isValid: true };
+    }
+    return { isValid: true };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { isValid: false, error: error.errors[0]?.message };
+    }
+    return { isValid: false, error: 'Error de validación' };
   }
 }; 

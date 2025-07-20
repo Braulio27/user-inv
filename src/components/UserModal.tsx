@@ -19,7 +19,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close'
 import { useState, useEffect } from 'react'
 import { UserData } from '@/types/user'
-import { validateUserData, safeValidateUserData } from '@/schemas/user'
+import { validateUserData, safeValidateUserData, validateField } from '@/schemas/user'
 import { validateAndSanitizeInput } from '@/utils/security'
 
 interface UserModalProps {
@@ -51,6 +51,7 @@ export default function UserModal({ open, onClose, onSave, user, mode }: UserMod
   const [formData, setFormData] = useState<UserData>(initialUserData)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     if (user && mode === 'edit') {
@@ -59,6 +60,7 @@ export default function UserModal({ open, onClose, onSave, user, mode }: UserMod
       setFormData(initialUserData)
     }
     setErrors({})
+    setTouched({})
   }, [user, mode, open])
 
   const handleInputChange = (field: keyof UserData, value: string) => {
@@ -66,12 +68,35 @@ export default function UserModal({ open, onClose, onSave, user, mode }: UserMod
     const sanitizedValue = validateAndSanitizeInput(value)
     if (sanitizedValue.success) {
       setFormData(prev => ({ ...prev, [field]: sanitizedValue.data }))
-      // Limpiar error del campo si existe
-      if (errors[field]) {
-        setErrors(prev => ({ ...prev, [field]: '' }))
+      
+      // Marcar campo como tocado
+      setTouched(prev => ({ ...prev, [field]: true }))
+      
+      // Validar campo individual si ya fue tocado
+      if (touched[field]) {
+        const fieldValidation = validateField(field, sanitizedValue.data)
+        if (fieldValidation.isValid) {
+          setErrors(prev => ({ ...prev, [field]: '' }))
+        } else {
+          setErrors(prev => ({ ...prev, [field]: fieldValidation.error || '' }))
+        }
       }
     } else {
       setErrors(prev => ({ ...prev, [field]: sanitizedValue.error }))
+    }
+  }
+
+  const handleFieldBlur = (field: keyof UserData) => {
+    setTouched(prev => ({ ...prev, [field]: true }))
+    
+    const value = formData[field]
+    if (typeof value === 'string') {
+      const fieldValidation = validateField(field, value)
+      if (fieldValidation.isValid) {
+        setErrors(prev => ({ ...prev, [field]: '' }))
+      } else {
+        setErrors(prev => ({ ...prev, [field]: fieldValidation.error || '' }))
+      }
     }
   }
 
@@ -100,6 +125,14 @@ export default function UserModal({ open, onClose, onSave, user, mode }: UserMod
     setIsSubmitting(true)
     
     try {
+      // Marcar todos los campos como tocados
+      const allFields = Object.keys(formData) as (keyof UserData)[]
+      const newTouched: Record<string, boolean> = {}
+      allFields.forEach(field => {
+        newTouched[field] = true
+      })
+      setTouched(newTouched)
+      
       // Validar formulario
       if (!validateForm()) {
         setIsSubmitting(false)
@@ -130,9 +163,12 @@ export default function UserModal({ open, onClose, onSave, user, mode }: UserMod
     if (!isSubmitting) {
       setFormData(initialUserData)
       setErrors({})
+      setTouched({})
       onClose()
     }
   }
+
+  const hasErrors = Object.values(errors).some(error => error !== '')
 
   return (
     <Dialog
@@ -180,8 +216,9 @@ export default function UserModal({ open, onClose, onSave, user, mode }: UserMod
             label="Número de Empleado"
             value={formData.numeroEmpleado}
             onChange={(e) => handleInputChange('numeroEmpleado', e.target.value)}
-            error={!!errors.numeroEmpleado}
-            helperText={errors.numeroEmpleado}
+            onBlur={() => handleFieldBlur('numeroEmpleado')}
+            error={touched.numeroEmpleado && !!errors.numeroEmpleado}
+            helperText={touched.numeroEmpleado ? errors.numeroEmpleado : ''}
             fullWidth
             required
             disabled={isSubmitting}
@@ -191,8 +228,9 @@ export default function UserModal({ open, onClose, onSave, user, mode }: UserMod
             label="Nombre Completo"
             value={formData.nombreCompleto}
             onChange={(e) => handleInputChange('nombreCompleto', e.target.value)}
-            error={!!errors.nombreCompleto}
-            helperText={errors.nombreCompleto}
+            onBlur={() => handleFieldBlur('nombreCompleto')}
+            error={touched.nombreCompleto && !!errors.nombreCompleto}
+            helperText={touched.nombreCompleto ? errors.nombreCompleto : ''}
             fullWidth
             required
             disabled={isSubmitting}
@@ -202,8 +240,9 @@ export default function UserModal({ open, onClose, onSave, user, mode }: UserMod
             label="Usuario"
             value={formData.usuario}
             onChange={(e) => handleInputChange('usuario', e.target.value)}
-            error={!!errors.usuario}
-            helperText={errors.usuario}
+            onBlur={() => handleFieldBlur('usuario')}
+            error={touched.usuario && !!errors.usuario}
+            helperText={touched.usuario ? errors.usuario : 'Mínimo 3 caracteres, solo letras minúsculas, números, guiones y guiones bajos'}
             fullWidth
             required
             disabled={isSubmitting}
@@ -213,8 +252,9 @@ export default function UserModal({ open, onClose, onSave, user, mode }: UserMod
             label="Edificio"
             value={formData.edificio}
             onChange={(e) => handleInputChange('edificio', e.target.value)}
-            error={!!errors.edificio}
-            helperText={errors.edificio}
+            onBlur={() => handleFieldBlur('edificio')}
+            error={touched.edificio && !!errors.edificio}
+            helperText={touched.edificio ? errors.edificio : ''}
             fullWidth
             required
             disabled={isSubmitting}
@@ -224,8 +264,9 @@ export default function UserModal({ open, onClose, onSave, user, mode }: UserMod
             label="Departamento"
             value={formData.departamento}
             onChange={(e) => handleInputChange('departamento', e.target.value)}
-            error={!!errors.departamento}
-            helperText={errors.departamento}
+            onBlur={() => handleFieldBlur('departamento')}
+            error={touched.departamento && !!errors.departamento}
+            helperText={touched.departamento ? errors.departamento : ''}
             fullWidth
             required
             disabled={isSubmitting}
@@ -235,8 +276,9 @@ export default function UserModal({ open, onClose, onSave, user, mode }: UserMod
             label="Puesto"
             value={formData.puesto}
             onChange={(e) => handleInputChange('puesto', e.target.value)}
-            error={!!errors.puesto}
-            helperText={errors.puesto}
+            onBlur={() => handleFieldBlur('puesto')}
+            error={touched.puesto && !!errors.puesto}
+            helperText={touched.puesto ? errors.puesto : ''}
             fullWidth
             required
             disabled={isSubmitting}
@@ -286,8 +328,9 @@ export default function UserModal({ open, onClose, onSave, user, mode }: UserMod
             label="Service Tag"
             value={formData.serviceTag}
             onChange={(e) => handleInputChange('serviceTag', e.target.value)}
-            error={!!errors.serviceTag}
-            helperText={errors.serviceTag}
+            onBlur={() => handleFieldBlur('serviceTag')}
+            error={touched.serviceTag && !!errors.serviceTag}
+            helperText={touched.serviceTag ? errors.serviceTag : ''}
             fullWidth
             required
             disabled={isSubmitting}
@@ -326,8 +369,9 @@ export default function UserModal({ open, onClose, onSave, user, mode }: UserMod
             label="Modelo"
             value={formData.modelo}
             onChange={(e) => handleInputChange('modelo', e.target.value)}
-            error={!!errors.modelo}
-            helperText={errors.modelo}
+            onBlur={() => handleFieldBlur('modelo')}
+            error={touched.modelo && !!errors.modelo}
+            helperText={touched.modelo ? errors.modelo : ''}
             fullWidth
             required
             disabled={isSubmitting}
@@ -337,8 +381,9 @@ export default function UserModal({ open, onClose, onSave, user, mode }: UserMod
             label="Dirección MAC"
             value={formData.direccionMac}
             onChange={(e) => handleInputChange('direccionMac', e.target.value)}
-            error={!!errors.direccionMac}
-            helperText={errors.direccionMac || 'Formato: 00:1B:44:11:3A:B7'}
+            onBlur={() => handleFieldBlur('direccionMac')}
+            error={touched.direccionMac && !!errors.direccionMac}
+            helperText={touched.direccionMac ? errors.direccionMac : 'Formato: 00:1B:44:11:3A:B7'}
             fullWidth
             required
             disabled={isSubmitting}
@@ -359,7 +404,7 @@ export default function UserModal({ open, onClose, onSave, user, mode }: UserMod
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={isSubmitting}
+          disabled={isSubmitting || hasErrors}
           sx={{ minWidth: 100 }}
         >
           {isSubmitting ? 'Guardando...' : 'Guardar'}
